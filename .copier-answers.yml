@@ -1,0 +1,9 @@
+# Changes here will be overwritten by Copier; NEVER EDIT MANUALLY
+_commit: 4.6.2
+_src_path: gh:epics-containers/ioc-template
+description: insertion device ioc
+git_platform: github.com
+github_org: ronaldomercado
+name: ioc-idproject
+repo_uri: git@github.com:ronaldomercado/ioc-idproject.git
+rtems: false

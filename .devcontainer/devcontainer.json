@@ -1,0 +1,87 @@
+// For format details, see https://containers.dev/implementors/json_reference/
+{
+    "name": "epics-containers IOC devcontainer",
+    "build": {
+        "dockerfile": "../Dockerfile",
+        "target": "developer",
+        "args": {
+            // Native target development settings ==============================
+            "EPICS_TARGET_ARCH": "linux-x86_64"
+            // Local cross compilation settings ================================
+            // "EPICS_TARGET_ARCH": "RTEMS-beatnik",
+            // "IMAGE_EXT": "-rtems-beatnik"
+        }
+    },
+    "containerEnv": {
+        // provides a name for epics-containers to use in bash prompt etc.
+        "EC_PROJECT": "${localWorkspaceFolderBasename}",
+        "IOC_NAME": "DEV_TEST_IOC",
+        // fixes this error: Ansible could not initialize the preferred locale: unsupported locale setting
+        "LC_ALL": "C.UTF-8",
+        // We put venv on a different volume to cache so have to copy
+        "UV_LINK_MODE": "copy"
+    },
+    // outside of the container setup
+    "initializeCommand": "bash .devcontainer/initializeCommand ${devcontainerId}",
+    // IMPORTANT for this devcontainer to work with docker rootful
+    // EC_REMOTE_USER must be set to your user name. You will run with full
+    // sudo rights.
+    // For podman it should be left blank. You will run as root but host mounts
+    // will be owned by your user id.
+    "remoteUser": "${localEnv:EC_REMOTE_USER}",
+    "customizations": {
+        "vscode": {
+            // Add the IDs of extensions you want installed when the container is created.
+            "extensions": [
+                "ms-python.vscode-pylance",
+                "redhat.vscode-yaml",
+                "epicsdeb.vscode-epics",
+                "charliermarsh.ruff",
+                "ms-vscode.cpptools",
+                "redhat.ansible"
+            ]
+        },
+        "settings": {
+            "python.defaultInterpreterPath": "/venv/bin/python",
+            "python.terminal.activateEnvInCurrentTerminal": false,
+            "python.terminal.activateEnvironment": false,
+            // Workaround to prevent garbled python REPL in the terminal
+            // https://github.com/microsoft/vscode-python/issues/25505
+            "python.terminal.shellIntegration.enabled": false,
+            // make sure IOC server ports are available locally on the host
+            "remote.autoForwardPorts": true,
+            "remote.autoForwardPortsSource": "process"
+        }
+    },
+    // Populate the user's terminal config folder with default config if it is blank
+    "onCreateCommand": "/root/terminal-config/ensure-user-terminal-config.sh",
+    // One time global setup commands inside the container
+    "postCreateCommand": "bash .devcontainer/postCreateCommand ${devcontainerId}",
+    "runArgs": [
+        // Make sure SELinux does not disable write access to host filesystems like tmp
+        "--security-opt=label=disable"
+    ],
+    // Mount the parent of the project folder so we can access peer projects
+    "workspaceMount": "source=${localWorkspaceFolder}/..,target=/workspaces,type=bind",
+    // mount in other useful files from the host
+    "mounts": [
+        // we also mount the project folder into a know location in the container
+        // this is where the ibek-support and ioc folders reside in the container build
+        // in this way the devcontainer and runtime look very similar
+        "source=${localWorkspaceFolder},target=/epics/generic-source,type=bind",
+        // Mount the opi folder so we can use phoebus from outside the container
+        "source=${localWorkspaceFolder}/opi/auto-generated,target=/epics/opi,type=bind", //
+        // Mount in the user terminal config folder so it can be edited
+        {
+            "source": "${localEnv:HOME}/.config/terminal-config",
+            "target": "/user-terminal-config",
+            "type": "bind"
+        },
+        // Keep a persistent cross container cache for uv
+        {
+            "source": "${localEnv:HOME}/.cache/uv",
+            "target": "/root/.cache/uv",
+            "type": "bind"
+        }
+    ]
+}

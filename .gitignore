@@ -1,0 +1,27 @@
+.history
+repos*
+**/.ruff_cache/
+**/.mypy_cache/
+
+# build pulls the schema out of the container - ignore it
+*ibek.ioc.schema.json
+# while working on ibek with this project somethimes include it as subfolder
+ibek
+
+# dont save workspaces as other users will have differing folders
+*workspace
+
+# config folder is a container mount at /epics/ioc/config
+ioc/config
+# the opi folder is also mounted into the container at /epics/ioc/opi
+opi/auto-generated
+
+# podman may leave this around in aborted builds
+.build.swp
+
+# this gets updated during RTEMS builds in devcontainer but we dont want to commit it
+# TODO this entry does not work - why on earth not?
+ioc/configure/CONFIG_SITE.Common.linux-x86_64
+
+**/.ansible
+**/*build.log
