@@ -26,6 +26,8 @@ RUN cd /epics && \
     patch < /epics/patchScript.txt && \
     rm /epics/patchScript.txt
 
+ENV PATH=$PATH:/epics/extensions/VisualDCT
+
 # The devcontainer mounts the project root to /epics/generic-source
 # Using the same location here makes devcontainer/runtime differences transparent.
 ENV SOURCE_FOLDER=/epics/generic-source
