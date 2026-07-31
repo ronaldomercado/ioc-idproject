@@ -1,0 +1,11 @@
+diff --git a/flatdb.sh b/flatdb.sh
+index 9312a8a..31f5992 100755
+--- a/flatdb.sh
++++ b/flatdb.sh
+@@ -1,4 +1,4 @@
+-#!/bin/sh
++#!/bin/bash
+ # VisualDCT flatdb run script
+
+ if [ -z "$VDCT_HOME" ]; then
+ 

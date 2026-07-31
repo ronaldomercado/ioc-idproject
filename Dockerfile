@@ -2,17 +2,29 @@ ARG IMAGE_EXT
 
 ARG REGISTRY=ghcr.io/epics-containers
 ARG RUNTIME=${REGISTRY}/epics-base${IMAGE_EXT}-runtime:7.0.9ec5
-ARG DEVELOPER=${REGISTRY}/epics-base${IMAGE_EXT}-developer:7.0.9ec5
-# for pre-built common support and faster builds of this generic IOC:
-# - change above to￼DEVELOPER=${REGISTRY}/ioc-asyn${IMAGE_EXT}-developer:4.45ec2
-# - comment out uv pip install lines below (unless a newer ibek is needed)
-# - remove ansible.sh lines for all support modules provided by ioc-asyn
+ARG DEVELOPER=${REGISTRY}/ioc-pmac{IMAGE_EXT}-developer:2026.6.1
+
 
 ##### build stage ##############################################################
 FROM  ${DEVELOPER} AS developer
 
-# initiate ioc image verson variable for manifest
-ARG IOC_VERSION=unknown
+ARG IOC_VERSION=2026.7.31
+
+# install java-related packages for vdct + flatdb
+RUN apt-get update -y && \
+    apt-get install -y  openjdk-25-jdk-headless maven && \
+    rm -rf /var/lib/apt/lists/*
+
+# build vdct
+COPY vdct/patchScript.txt /epics/patchScript.txt
+RUN cd /epics && \
+    git clone https://github.com/epics-extensions/VisualDCT.git \
+    -b v2.8.4 extensions/VisualDCT && \
+    cd /epics/extensions/VisualDCT && \
+    mvn install && \
+    ln -s target/VisualDCT-2.8.4.jar VisualDCT.jar && \
+    patch < /epics/patchScript.txt && \
+    rm /epics/patchScript.txt
 
 # The devcontainer mounts the project root to /epics/generic-source
 # Using the same location here makes devcontainer/runtime differences transparent.
@@ -22,21 +34,20 @@ RUN ln -s ${SOURCE_FOLDER}/ioc ${IOC}
 
 # get the current versions of pvi and ibek
 COPY requirements.txt requirements.txt
-RUN uv pip install --upgrade -r requirements.txt
 
 WORKDIR ${SOURCE_FOLDER}/ibek-support
 
 COPY ibek-support/_ansible _ansible
 ENV PATH=$PATH:${SOURCE_FOLDER}/ibek-support/_ansible
 
-COPY ibek-support/iocStats/ iocStats
-RUN ansible.sh iocStats
+COPY ibek-support/ether_ip/ ether_ip
+RUN ansible.sh ether_ip
 
-COPY ibek-support/pvlogging/ pvlogging/
-RUN ansible.sh pvlogging
+COPY ibek-support/idMotion/ idMotion
+RUN ansible.sh idMotion
 
-COPY ibek-support/autosave/ autosave
-RUN ansible.sh autosave
+COPY ibek-support/idPLC/ idPLC
+RUN ansible.sh idPLC
 
 # get the ioc source and build it
 COPY ioc ${SOURCE_FOLDER}/ioc
