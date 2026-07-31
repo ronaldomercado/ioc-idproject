@@ -34,6 +34,7 @@ RUN ln -s ${SOURCE_FOLDER}/ioc ${IOC}
 
 # get the current versions of pvi and ibek
 COPY requirements.txt requirements.txt
+RUN uv pip install --upgrade -r requirements.txt
 
 WORKDIR ${SOURCE_FOLDER}/ibek-support
 
