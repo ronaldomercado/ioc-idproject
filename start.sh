@@ -6,4 +6,4 @@ opts="
 --net host
 --security-opt=label=type:container_runtime_t
 "
-podman run -dit ${volumes} localhost/ec_test:latest 
+podman run -dit ${volumes} ${opts}--name=ts02k-motion localhost/ec_test:latest 
