@@ -50,6 +50,9 @@ RUN ansible.sh idMotion
 COPY ibek-support/idPLC/ idPLC
 RUN ansible.sh idPLC
 
+COPY ibek-support/dlsPLC/ dlsPLC
+RUN ansible.sh dlsPLC
+
 # get the ioc source and build it
 COPY ioc ${SOURCE_FOLDER}/ioc
 RUN ansible.sh ioc
